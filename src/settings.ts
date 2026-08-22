@@ -21,7 +21,7 @@ export class WritingAssetSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Writing Asset" });
+		new Setting(containerEl).setName("Writing Asset").setHeading();
 
 		new Setting(containerEl)
 			.setName("Asset group property")
