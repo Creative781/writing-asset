@@ -4,6 +4,7 @@ import {
 	joinPath,
 	listDirectoryNames,
 } from "./sys";
+import { runtimeRequire } from "./runtime";
 
 interface OpenDialogResult {
 	canceled: boolean;
@@ -16,18 +17,6 @@ interface RemoteDialog {
 		properties: string[];
 		filters?: { name: string; extensions: string[] }[];
 	}) => Promise<OpenDialogResult>;
-}
-
-interface WindowWithRequire extends Window {
-	require?: (moduleId: string) => unknown;
-}
-
-function runtimeRequire(id: string): unknown {
-	const req = (window as WindowWithRequire).require;
-	if (typeof req !== "function") {
-		throw new Error("This plugin only works in Obsidian desktop.");
-	}
-	return req(id);
 }
 
 function loadRemoteDialog(): RemoteDialog {

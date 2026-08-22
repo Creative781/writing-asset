@@ -1,12 +1,12 @@
-import { pathToFileURL } from "url";
 import {
 	isAbsolutePath,
-	isExistingFile,
 	joinPath,
 	PATH_SEP,
 	relativePath,
 	resolvePath,
-} from "./sys";
+	toFileUrl,
+} from "./path-utils";
+import { isExistingFile } from "./sys";
 
 export function toStoredPath(absPath: string, assetRoot: string): string {
 	if (!assetRoot) return absPath;
@@ -29,9 +29,7 @@ export function fileExists(absPath: string): boolean {
 	return isExistingFile(absPath);
 }
 
-export function toFileUrl(absPath: string): string {
-	return pathToFileURL(absPath).href;
-}
+export { toFileUrl };
 
 export function replacePathPrefix(
 	storedPath: string,
