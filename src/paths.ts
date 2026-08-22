@@ -1,30 +1,25 @@
-import * as fs from "fs";
-import * as nodePath from "path";
 import { pathToFileURL } from "url";
+import { isExistingFile, path } from "./sys";
 
 export function toStoredPath(absPath: string, assetRoot: string): string {
 	if (!assetRoot) return absPath;
-	const root = nodePath.resolve(assetRoot);
-	const abs = nodePath.resolve(absPath);
-	const prefix = root.endsWith(nodePath.sep) ? root : root + nodePath.sep;
+	const root = path.resolve(assetRoot);
+	const abs = path.resolve(absPath);
+	const prefix = root.endsWith(path.sep) ? root : root + path.sep;
 	if (abs === root || abs.startsWith(prefix)) {
-		return nodePath.relative(root, abs) || ".";
+		return path.relative(root, abs) || ".";
 	}
 	return abs;
 }
 
 export function resolveAssetPath(storedPath: string, assetRoot: string): string {
-	if (nodePath.isAbsolute(storedPath)) return storedPath;
+	if (path.isAbsolute(storedPath)) return storedPath;
 	if (!assetRoot) return storedPath;
-	return nodePath.resolve(assetRoot, storedPath);
+	return path.resolve(assetRoot, storedPath);
 }
 
 export function fileExists(absPath: string): boolean {
-	try {
-		return fs.existsSync(absPath) && fs.statSync(absPath).isFile();
-	} catch {
-		return false;
-	}
+	return isExistingFile(absPath);
 }
 
 export function toFileUrl(absPath: string): string {
@@ -36,13 +31,13 @@ export function replacePathPrefix(
 	oldPrefix: string,
 	newPrefix: string,
 ): string {
-	const abs = nodePath.resolve(storedPath);
-	const from = nodePath.resolve(oldPrefix);
-	const to = nodePath.resolve(newPrefix);
+	const abs = path.resolve(storedPath);
+	const from = path.resolve(oldPrefix);
+	const to = path.resolve(newPrefix);
 	if (abs === from) return to;
-	const fromPrefix = from.endsWith(nodePath.sep) ? from : from + nodePath.sep;
+	const fromPrefix = from.endsWith(path.sep) ? from : from + path.sep;
 	if (abs.startsWith(fromPrefix)) {
-		return nodePath.join(to, abs.slice(fromPrefix.length));
+		return path.join(to, abs.slice(fromPrefix.length));
 	}
 	return storedPath;
 }

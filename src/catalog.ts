@@ -1,5 +1,10 @@
 import { normalizePath, TFile, type Vault } from "obsidian";
 import type WritingAssetPlugin from "./main";
+import { readFrontmatterString } from "./frontmatter";
+import {
+	indexedMarkdownFiles,
+	markdownFilesInFolder,
+} from "./vault-files";
 import {
 	CATALOG_TYPE,
 	type AssetItem,
@@ -87,16 +92,32 @@ export class CatalogService {
 	groupFromFile(file: TFile | null): string | null {
 		if (!file) return null;
 		const fm = this.plugin.app.metadataCache.getFileCache(file)?.frontmatter;
-		if (!fm) return null;
-		const key = this.plugin.settings.propertyName;
-		const value = fm[key] ?? fm["asset-group"];
-		if (value === undefined || value === null || value === "") return null;
-		return String(value);
+		return readFrontmatterString(
+			fm,
+			this.plugin.settings.propertyName,
+			"asset-group",
+		);
+	}
+
+	private catalogCandidates(): TFile[] {
+		const folder = catalogDir(this.plugin.settings.catalogFolder);
+		const candidates = new Map<string, TFile>();
+		if (folder) {
+			for (const file of markdownFilesInFolder(this.plugin.app, folder)) {
+				candidates.set(file.path, file);
+			}
+		}
+		for (const file of indexedMarkdownFiles(this.plugin.app)) {
+			if (this.groupFromCatalogFile(file)) {
+				candidates.set(file.path, file);
+			}
+		}
+		return [...candidates.values()];
 	}
 
 	async listGroups(): Promise<string[]> {
 		const groups = new Set<string>();
-		for (const file of this.plugin.app.vault.getMarkdownFiles()) {
+		for (const file of this.catalogCandidates()) {
 			const group = this.groupFromCatalogFile(file);
 			if (group) groups.add(group);
 		}
@@ -106,15 +127,16 @@ export class CatalogService {
 	groupFromCatalogFile(file: TFile): string | null {
 		const fm = this.plugin.app.metadataCache.getFileCache(file)?.frontmatter;
 		if (fm?.type !== CATALOG_TYPE) return null;
-		const key = this.plugin.settings.propertyName;
-		const value = fm[key] ?? fm["asset-group"];
-		if (value === undefined || value === null || value === "") return null;
-		return String(value);
+		return readFrontmatterString(
+			fm,
+			this.plugin.settings.propertyName,
+			"asset-group",
+		);
 	}
 
 	listWritingNotes(group: string): TFile[] {
 		const notes: TFile[] = [];
-		for (const file of this.plugin.app.vault.getMarkdownFiles()) {
+		for (const file of indexedMarkdownFiles(this.plugin.app)) {
 			if (this.groupFromCatalogFile(file) === group) continue;
 			if (this.groupFromFile(file) === group) notes.push(file);
 		}
@@ -122,7 +144,7 @@ export class CatalogService {
 	}
 
 	async findCatalog(group: string): Promise<TFile | null> {
-		for (const file of this.plugin.app.vault.getMarkdownFiles()) {
+		for (const file of this.catalogCandidates()) {
 			if (this.groupFromCatalogFile(file) === group) return file;
 		}
 		const path = catalogFilePath(

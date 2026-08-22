@@ -394,37 +394,38 @@
 }
 
 /* Hide default code-block chrome around writing-asset fences */
+.markdown-rendered .markdown-preview-sizer .block-language-writing-asset,
 .markdown-rendered .block-language-writing-asset,
 .cm-preview-code-block.block-language-writing-asset {
-	background: transparent !important;
-	border: none !important;
-	padding: 0 !important;
-	margin: 0.5em 0 !important;
-	box-shadow: none !important;
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0.5em 0;
+	box-shadow: none;
 }
 
 .cm-preview-code-block.block-language-writing-asset .code-block-flair,
 .cm-preview-code-block.block-language-writing-asset .edit-block-button {
-	display: none !important;
+	display: none;
 }
 
 @media print {
 	.writing-asset-edit {
-		display: none !important;
+		display: none;
 	}
 
 	.writing-asset-embed audio,
 	.writing-asset-embed video {
-		display: none !important;
+		display: none;
 	}
 
 	body.wa-pdf-images .writing-asset-embed.is-nonimage {
-		display: none !important;
+		display: none;
 	}
 
 	.writing-asset-embed.is-image img {
-		max-width: 100% !important;
-		break-inside: avoid;
+		max-width: 100%;
+		page-break-inside: avoid;
 	}
 }
 

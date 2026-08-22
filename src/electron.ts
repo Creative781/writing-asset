@@ -1,5 +1,10 @@
-import * as fs from "fs";
-import * as nodePath from "path";
+import {
+	copyFileSync,
+	existsSync,
+	listDirectoryNames,
+	path,
+	statSync,
+} from "./sys";
 
 interface OpenDialogResult {
 	canceled: boolean;
@@ -14,12 +19,16 @@ interface RemoteDialog {
 	}) => Promise<OpenDialogResult>;
 }
 
+interface WindowWithRequire extends Window {
+	require?: (moduleId: string) => unknown;
+}
+
 function runtimeRequire(id: string): unknown {
-	const g = globalThis as unknown as { require?: (moduleId: string) => unknown };
-	if (typeof g.require !== "function") {
+	const req = (window as WindowWithRequire).require;
+	if (typeof req !== "function") {
 		throw new Error("This plugin only works in Obsidian desktop.");
 	}
-	return g.require(id);
+	return req(id);
 }
 
 function loadRemoteDialog(): RemoteDialog {
@@ -109,17 +118,17 @@ function expandDroppedPaths(paths: string[], limit: number): string[] {
 	for (const abs of paths) {
 		if (out.length >= limit) break;
 		try {
-			const stat = fs.statSync(abs);
+			const stat = statSync(abs);
 			if (stat.isFile()) {
 				out.push(abs);
 				continue;
 			}
 			if (!stat.isDirectory()) continue;
-			for (const name of fs.readdirSync(abs)) {
+			for (const name of listDirectoryNames(abs)) {
 				if (out.length >= limit) break;
-				const child = nodePath.join(abs, name);
+				const child = path.join(abs, name);
 				try {
-					if (fs.statSync(child).isFile()) out.push(child);
+					if (statSync(child).isFile()) out.push(child);
 				} catch {
 					// skip unreadable entries
 				}

@@ -1,4 +1,5 @@
 import { AbstractInputSuggest, App, TFolder } from "obsidian";
+import { allFolders } from "./vault-files";
 
 export class FolderSuggest extends AbstractInputSuggest<TFolder> {
 	constructor(
@@ -10,11 +11,7 @@ export class FolderSuggest extends AbstractInputSuggest<TFolder> {
 
 	protected getSuggestions(query: string): TFolder[] {
 		const q = query.toLowerCase().trim();
-		const folders: TFolder[] = [];
-		for (const file of this.app.vault.getAllLoadedFiles()) {
-			if (file instanceof TFolder) folders.push(file);
-		}
-		folders.sort((a, b) => {
+		const folders = allFolders(this.app).sort((a, b) => {
 			if (a.isRoot()) return -1;
 			if (b.isRoot()) return 1;
 			return a.path.localeCompare(b.path, "ko");

@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, ToggleComponent } from "obsidian";
+import { App, PluginSettingTab, Setting, ToggleComponent, type SettingDefinitionItem } from "obsidian";
 import type WritingAssetPlugin from "./main";
 import { pickDirectory } from "./electron";
 import { FolderSuggest } from "./folder-suggest";
@@ -19,6 +19,14 @@ export class WritingAssetSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
+		this.refreshSettings();
+	}
+
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [];
+	}
+
+	private refreshSettings(): void {
 		const { containerEl } = this;
 		containerEl.empty();
 
@@ -75,7 +83,7 @@ export class WritingAssetSettingTab extends PluginSettingTab {
 					if (!dir) return;
 					this.plugin.settings.assetRoot = dir;
 					await this.plugin.saveSettings();
-					this.display();
+					this.refreshSettings();
 				}),
 			);
 
@@ -115,7 +123,7 @@ export class WritingAssetSettingTab extends PluginSettingTab {
 					this.plugin.settings.cardPreset = value;
 					this.plugin.settings.cardFields = fieldsForPreset(value);
 					await this.plugin.saveSettings();
-					this.display();
+					this.refreshSettings();
 				});
 			});
 
@@ -146,7 +154,7 @@ export class WritingAssetSettingTab extends PluginSettingTab {
 
 		header.addEventListener("click", () => {
 			this.cardFieldsExpanded = !this.cardFieldsExpanded;
-			this.display();
+			this.refreshSettings();
 		});
 	}
 

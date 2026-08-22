@@ -1,6 +1,5 @@
-import * as fs from "fs";
-import * as nodePath from "path";
 import { extensionOf } from "./kinds";
+import { fileSize, path, readFileBytes } from "./sys";
 
 const MIME: Record<string, string> = {
 	png: "image/png",
@@ -35,29 +34,21 @@ export function mimeFor(filename: string): string {
 }
 
 export function localMediaBlobUrl(absPath: string): string | null {
-	try {
-		const stat = fs.statSync(absPath);
-		if (!stat.isFile() || stat.size === 0) return null;
-		if (stat.size > MAX_PREVIEW_BYTES) return null;
-		const buf = fs.readFileSync(absPath);
-		const blob = new Blob([new Uint8Array(buf)], {
-			type: mimeFor(nodePath.basename(absPath)),
-		});
-		return URL.createObjectURL(blob);
-	} catch {
-		return null;
-	}
+	const size = fileSize(absPath);
+	if (size === null || size === 0 || size > MAX_PREVIEW_BYTES) return null;
+	const buf = readFileBytes(absPath);
+	if (!buf) return null;
+	const blob = new Blob([new Uint8Array(buf)], {
+		type: mimeFor(path.basename(absPath)),
+	});
+	return URL.createObjectURL(blob);
 }
 
 /** Data URLs survive Beautiful PDF HTML copy; blob: URLs do not. */
 export function localMediaDataUrl(absPath: string): string | null {
-	try {
-		const stat = fs.statSync(absPath);
-		if (!stat.isFile() || stat.size === 0) return null;
-		if (stat.size > MAX_PREVIEW_BYTES) return null;
-		const buf = fs.readFileSync(absPath);
-		return `data:${mimeFor(nodePath.basename(absPath))};base64,${buf.toString("base64")}`;
-	} catch {
-		return null;
-	}
+	const size = fileSize(absPath);
+	if (size === null || size === 0 || size > MAX_PREVIEW_BYTES) return null;
+	const buf = readFileBytes(absPath);
+	if (!buf) return null;
+	return `data:${mimeFor(path.basename(absPath))};base64,${buf.toString("base64")}`;
 }

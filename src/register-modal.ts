@@ -1,5 +1,5 @@
 import { Modal, Setting } from "obsidian";
-import * as nodePath from "path";
+import { path } from "./sys";
 import type WritingAssetPlugin from "./main";
 import { kindFromFilename, suggestedCategory } from "./kinds";
 import { uniqueAssetId } from "./paths";
@@ -31,7 +31,7 @@ export class RegisterModal extends Modal {
 	) {
 		super(plugin.app);
 		this.drafts = filePaths.map((absPath) => {
-			const filename = nodePath.basename(absPath);
+			const filename = path.basename(absPath);
 			const kind = kindFromFilename(filename);
 			return {
 				absPath,
@@ -83,7 +83,7 @@ export class RegisterModal extends Modal {
 
 		for (const draft of this.drafts) {
 			const wrap = contentEl.createDiv("writing-asset-draft");
-			wrap.createEl("div", {
+			wrap.createSpan({
 				cls: "writing-asset-draft-file",
 				text: draft.filename,
 			});
