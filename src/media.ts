@@ -1,5 +1,5 @@
 import { extensionOf } from "./kinds";
-import { fileSize, path, readFileBytes } from "./sys";
+import { basenamePath, fileSize, readFileBytes } from "./sys";
 
 const MIME: Record<string, string> = {
 	png: "image/png",
@@ -29,6 +29,15 @@ const MIME: Record<string, string> = {
 
 const MAX_PREVIEW_BYTES = 80 * 1024 * 1024;
 
+function bytesToBase64(bytes: Uint8Array): string {
+	const copy = Uint8Array.from(bytes);
+	let binary = "";
+	for (let i = 0; i < copy.length; i++) {
+		binary += String.fromCharCode(copy[i]!);
+	}
+	return btoa(binary);
+}
+
 export function mimeFor(filename: string): string {
 	return MIME[extensionOf(filename)] ?? "application/octet-stream";
 }
@@ -36,10 +45,10 @@ export function mimeFor(filename: string): string {
 export function localMediaBlobUrl(absPath: string): string | null {
 	const size = fileSize(absPath);
 	if (size === null || size === 0 || size > MAX_PREVIEW_BYTES) return null;
-	const buf = readFileBytes(absPath);
-	if (!buf) return null;
-	const blob = new Blob([new Uint8Array(buf)], {
-		type: mimeFor(path.basename(absPath)),
+	const bytes = readFileBytes(absPath);
+	if (!bytes) return null;
+	const blob = new Blob([Uint8Array.from(bytes)], {
+		type: mimeFor(basenamePath(absPath)),
 	});
 	return URL.createObjectURL(blob);
 }
@@ -48,7 +57,8 @@ export function localMediaBlobUrl(absPath: string): string | null {
 export function localMediaDataUrl(absPath: string): string | null {
 	const size = fileSize(absPath);
 	if (size === null || size === 0 || size > MAX_PREVIEW_BYTES) return null;
-	const buf = readFileBytes(absPath);
-	if (!buf) return null;
-	return `data:${mimeFor(path.basename(absPath))};base64,${buf.toString("base64")}`;
+	const bytes = readFileBytes(absPath);
+	if (!bytes) return null;
+	const encoded = bytesToBase64(bytes);
+	return `data:${mimeFor(basenamePath(absPath))};base64,${encoded}`;
 }

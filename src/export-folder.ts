@@ -3,11 +3,14 @@ import type WritingAssetPlugin from "./main";
 import { openInOs, pickDirectory } from "./electron";
 import { fileExists, resolveAssetPath } from "./paths";
 import {
-	copyFileSync,
+	basenamePath,
+	copyFile,
+	dirnamePath,
 	ensureDirectory,
-	existsSync,
-	path,
-	writeFileSync,
+	extnamePath,
+	joinPath,
+	pathExists,
+	writeTextFile,
 } from "./sys";
 import type { AssetItem } from "./types";
 
@@ -22,11 +25,11 @@ function safeName(value: string): string {
 }
 
 function uniqueFilename(dir: string, filename: string): string {
-	if (!existsSync(path.join(dir, filename))) return filename;
-	const ext = path.extname(filename);
-	const stem = path.basename(filename, ext);
+	if (!pathExists(joinPath(dir, filename))) return filename;
+	const ext = extnamePath(filename);
+	const stem = basenamePath(filename, ext);
 	let i = 2;
-	while (existsSync(path.join(dir, `${stem}-${i}${ext}`))) i += 1;
+	while (pathExists(joinPath(dir, `${stem}-${i}${ext}`))) i += 1;
 	return `${stem}-${i}${ext}`;
 }
 
@@ -38,13 +41,13 @@ export async function exportGroupFolder(
 	if (!parent) return;
 
 	const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
-	let target = path.join(parent, safeName(group));
-	if (existsSync(target)) {
-		target = path.join(parent, `${safeName(group)}-${stamp}`);
+	let target = joinPath(parent, safeName(group));
+	if (pathExists(target)) {
+		target = joinPath(parent, `${safeName(group)}-${stamp}`);
 	}
 
-	const notesDir = path.join(target, "Notes");
-	const assetsDir = path.join(target, "Assets");
+	const notesDir = joinPath(target, "Notes");
+	const assetsDir = joinPath(target, "Assets");
 	ensureDirectory(notesDir);
 	ensureDirectory(assetsDir);
 
@@ -56,30 +59,23 @@ export async function exportGroupFolder(
 	let noteCount = 0;
 	if (root) {
 		for (const file of notes) {
-			const dest = path.join(notesDir, file.path);
-			ensureDirectory(path.dirname(dest));
-			copyFileSync(path.join(root, file.path), dest);
+			const dest = joinPath(notesDir, file.path);
+			ensureDirectory(dirnamePath(dest));
+			copyFile(joinPath(root, file.path), dest);
 			noteCount += 1;
 		}
 		if (catalog) {
-			copyFileSync(
-				path.join(root, catalog.path),
-				path.join(target, "catalog.md"),
-			);
+			copyFile(joinPath(root, catalog.path), joinPath(target, "catalog.md"));
 		}
 	} else {
 		for (const file of notes) {
-			const dest = path.join(notesDir, file.path);
-			ensureDirectory(path.dirname(dest));
-			writeFileSync(dest, await plugin.app.vault.read(file), "utf8");
+			const dest = joinPath(notesDir, file.path);
+			ensureDirectory(dirnamePath(dest));
+			writeTextFile(dest, await plugin.app.vault.read(file));
 			noteCount += 1;
 		}
 		if (catalog) {
-			writeFileSync(
-				path.join(target, "catalog.md"),
-				await plugin.app.vault.read(catalog),
-				"utf8",
-			);
+			writeTextFile(joinPath(target, "catalog.md"), await plugin.app.vault.read(catalog));
 		}
 	}
 
@@ -92,7 +88,7 @@ export async function exportGroupFolder(
 			continue;
 		}
 		const filename = uniqueFilename(assetsDir, item.filename);
-		copyFileSync(abs, path.join(assetsDir, filename));
+		copyFile(abs, joinPath(assetsDir, filename));
 		copied.push({ item, filename });
 	}
 
@@ -112,7 +108,7 @@ export async function exportGroupFolder(
 		),
 		"",
 	].join("\n");
-	writeFileSync(path.join(target, "README.md"), index, "utf8");
+	writeTextFile(joinPath(target, "README.md"), index);
 
 	new Notice(`Exported: ${noteCount} note(s), ${copied.length} asset(s)`);
 	openInOs(target);

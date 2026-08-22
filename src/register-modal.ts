@@ -1,5 +1,5 @@
 import { Modal, Setting } from "obsidian";
-import { path } from "./sys";
+import { basenamePath } from "./sys";
 import type WritingAssetPlugin from "./main";
 import { kindFromFilename, suggestedCategory } from "./kinds";
 import { uniqueAssetId } from "./paths";
@@ -31,7 +31,7 @@ export class RegisterModal extends Modal {
 	) {
 		super(plugin.app);
 		this.drafts = filePaths.map((absPath) => {
-			const filename = path.basename(absPath);
+			const filename = basenamePath(absPath);
 			const kind = kindFromFilename(filename);
 			return {
 				absPath,

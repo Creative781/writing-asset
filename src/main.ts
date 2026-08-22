@@ -124,8 +124,8 @@ export default class WritingAssetPlugin extends Plugin {
 
 	async writeGroupToNote(file: TFile | null, group: string): Promise<void> {
 		if (!file) return;
-		await this.app.fileManager.processFrontMatter(file, (fm) => {
-			fm[this.settings.propertyName] = group;
+		await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+			frontmatter[this.settings.propertyName] = group;
 		});
 	}
 

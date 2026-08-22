@@ -1,21 +1,28 @@
 import { pathToFileURL } from "url";
-import { isExistingFile, path } from "./sys";
+import {
+	isAbsolutePath,
+	isExistingFile,
+	joinPath,
+	PATH_SEP,
+	relativePath,
+	resolvePath,
+} from "./sys";
 
 export function toStoredPath(absPath: string, assetRoot: string): string {
 	if (!assetRoot) return absPath;
-	const root = path.resolve(assetRoot);
-	const abs = path.resolve(absPath);
-	const prefix = root.endsWith(path.sep) ? root : root + path.sep;
+	const root = resolvePath(assetRoot);
+	const abs = resolvePath(absPath);
+	const prefix = root.endsWith(PATH_SEP) ? root : root + PATH_SEP;
 	if (abs === root || abs.startsWith(prefix)) {
-		return path.relative(root, abs) || ".";
+		return relativePath(root, abs) || ".";
 	}
 	return abs;
 }
 
 export function resolveAssetPath(storedPath: string, assetRoot: string): string {
-	if (path.isAbsolute(storedPath)) return storedPath;
+	if (isAbsolutePath(storedPath)) return storedPath;
 	if (!assetRoot) return storedPath;
-	return path.resolve(assetRoot, storedPath);
+	return resolvePath(assetRoot, storedPath);
 }
 
 export function fileExists(absPath: string): boolean {
@@ -31,13 +38,13 @@ export function replacePathPrefix(
 	oldPrefix: string,
 	newPrefix: string,
 ): string {
-	const abs = path.resolve(storedPath);
-	const from = path.resolve(oldPrefix);
-	const to = path.resolve(newPrefix);
+	const abs = resolvePath(storedPath);
+	const from = resolvePath(oldPrefix);
+	const to = resolvePath(newPrefix);
 	if (abs === from) return to;
-	const fromPrefix = from.endsWith(path.sep) ? from : from + path.sep;
+	const fromPrefix = from.endsWith(PATH_SEP) ? from : from + PATH_SEP;
 	if (abs.startsWith(fromPrefix)) {
-		return path.join(to, abs.slice(fromPrefix.length));
+		return joinPath(to, abs.slice(fromPrefix.length));
 	}
 	return storedPath;
 }

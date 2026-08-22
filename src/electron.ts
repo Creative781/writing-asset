@@ -1,7 +1,8 @@
 import {
+	isDirectoryPath,
+	isFilePath,
+	joinPath,
 	listDirectoryNames,
-	path,
-	statSync,
 } from "./sys";
 
 interface OpenDialogResult {
@@ -115,24 +116,15 @@ function expandDroppedPaths(paths: string[], limit: number): string[] {
 	const out: string[] = [];
 	for (const abs of paths) {
 		if (out.length >= limit) break;
-		try {
-			const stat = statSync(abs);
-			if (stat.isFile()) {
-				out.push(abs);
-				continue;
-			}
-			if (!stat.isDirectory()) continue;
-			for (const name of listDirectoryNames(abs)) {
-				if (out.length >= limit) break;
-				const child = path.join(abs, name);
-				try {
-					if (statSync(child).isFile()) out.push(child);
-				} catch {
-					// skip unreadable entries
-				}
-			}
-		} catch {
-			// skip missing paths
+		if (isFilePath(abs)) {
+			out.push(abs);
+			continue;
+		}
+		if (!isDirectoryPath(abs)) continue;
+		for (const name of listDirectoryNames(abs)) {
+			if (out.length >= limit) break;
+			const child = joinPath(abs, name);
+			if (isFilePath(child)) out.push(child);
 		}
 	}
 	return out;
