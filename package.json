@@ -1,0 +1,18 @@
+{
+	"name": "writing-asset",
+	"version": "1.0.0",
+	"description": "Link local files to Obsidian notes with metadata and reuse them while writing.",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+	},
+	"keywords": ["obsidian", "plugin"],
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^22.15.17",
+		"esbuild": "0.25.5",
+		"obsidian": "latest",
+		"typescript": "^5.8.3"
+	}
+}

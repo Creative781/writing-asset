@@ -1,0 +1,16 @@
+# npm
+node_modules
+
+# compiled cache
+*.map
+
+# obsidian
+data.json
+
+# macOS
+.DS_Store
+
+# editors
+.vscode
+.idea
+*.iml
