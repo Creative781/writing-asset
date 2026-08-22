@@ -1,4 +1,4 @@
-import { TFile, TFolder, type App } from "obsidian";
+import { normalizePath, TFile, TFolder, type App } from "obsidian";
 
 function walkMarkdownFiles(folder: TFolder, out: TFile[]): void {
 	for (const child of folder.children) {
@@ -14,10 +14,10 @@ export function indexedMarkdownFiles(app: App): TFile[] {
 }
 
 export function markdownFilesInFolder(app: App, folderPath: string): TFile[] {
-	const folder = app.vault.getFolderByPath(folderPath);
-	if (!folder) return [];
+	const node = app.vault.getAbstractFileByPath(normalizePath(folderPath));
+	if (!(node instanceof TFolder)) return [];
 	const out: TFile[] = [];
-	walkMarkdownFiles(folder, out);
+	walkMarkdownFiles(node, out);
 	return out;
 }
 
